@@ -193,6 +193,3 @@
    * *Hướng thiết kế:* Giới hạn cứng tối đa 2 lần yêu cầu bổ sung bằng chứng tự động; sau lần thứ 2 không đạt, hệ thống tự động gọi `chuyen_truong_nhom` để nhân viên hỗ trợ trực tiếp.
 3. **Thống nhất mốc thời gian đối chất người bán:** 
    * Cần chuẩn hóa thống nhất đồng hồ đếm ngược trên Prototype (Tab [4]) về đúng mốc **24 giờ** như đã quy định tại §3 và §4 để tránh mâu thuẫn hiển thị giữa các tài liệu.
-
-## §7. Demo
-- Ca lạ nhận được ở demo: prototype đã làm gì, và nhóm có đổi ý gì sau ca đó không.
