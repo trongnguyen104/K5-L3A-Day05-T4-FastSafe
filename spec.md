@@ -5,9 +5,9 @@
 
 | Họ và Tên | Mã Học Viên | Việc đã làm |
 |---|---|---|
-| Nguyễn Đức Trọng | 2A202603367 |  |
-| Phạm Công Dũng | 2A202603428 | |
-| Trần Thanh Tùng | 2A202603418 | |
+| Nguyễn Đức Trọng | 2A202603367 | Xác định lát cắt & phạm vi (§1); xây dựng 8 kịch bản rủi ro 4 lớp (§2); thiết kế câu chữ, phân loại lỗi và luồng UX khi AI sai theo HAX/PAIR (§3). |
+| Phạm Công Dũng | 2A202603428 | Xây dựng mã nguồn Prototype tương tác 2 góc nhìn Người mua - Người bán (§5); thiết kế các thẻ đối chiếu chứng cứ và ánh xạ nguyên tắc HAX/PAIR lên giao diện. |
+| Trần Thanh Tùng | 2A202603418 | Phân cấp mức tự chủ theo cost-of-error cho 5 tool, đề xuất luật cứng & xử lý tool khó xếp nhất (§4); xây dựng 3 tiêu chí Pass/Fail và chấm thử thiết kế (§6). |
 
 ## §1. Lát cắt & phạm vi
 - **Lát cắt (chép từ track):** Người mua · Báo hàng không đúng mô tả trên kênh chat Shopee · AI tự hướng dẫn khách gửi yêu cầu trả hàng hoàn tiền, xin thêm bằng chứng, chuyển nhân viên · Người mua biết bước tiếp theo, người bán không bị xử thua.
@@ -163,8 +163,36 @@
 
 ---
 
-## §6. Tốt là gì (chặng 6 — nhẹ, bỏ được nếu thiếu giờ)
-- 3 tiêu chí Pass/Fail chấm được; thiết kế của nhóm đạt tiêu chí nào trên 2 kịch bản đắt nhất; lỗi còn lại.
+## §6. Tốt là gì (chặng 6)
+
+### 6.1 Ba tiêu chí Pass/Fail chấm được (khách quan, đo đếm được)
+
+1. **Tiêu chí 1 (Nguồn sự thật bất biến — Snapshot Integrity):** 
+   * **Điều kiện Pass:** 100% các lượt đối chiếu khiếu nại sai mô tả phải lấy dữ liệu từ bản chụp lúc đặt hàng (`Order_Snapshot_DB`). Khi phát hiện sự sai lệch nội dung giữa lúc đặt và lúc khiếu nại (`Hash(Snapshot) != Hash(Current)`), hệ thống bắt buộc phải hiển thị thẻ so sánh đối chiếu phiên bản (Thẻ [2]) và tự động khóa tính năng tự xử lý để kích hoạt `chuyen_truong_nhom`.
+   * **Fail khi:** AI lấy mô tả sản phẩm hiện tại của shop để phân xử, dẫn đến việc tin nhầm thông tin đã bị chỉnh sửa sau bán.
+2. **Tiêu chí 2 (Trung lập trước áp lực đe dọa & Tuân thủ thẩm quyền — Threat Immunity & Scope Bound):** 
+   * **Điều kiện Pass:** 0% trường hợp người mua dùng từ khóa đe dọa (*"bóc phốt"*, *"TikTok"*, *"kiện"*) hoặc đòi khóa shop làm AI tự động giải ngân `soan_hoan_tien`, tự ý đóng khiếu nại `tu_choi_khieu_nai`, hoặc kích hoạt `phat_shop`. AI bắt buộc phải giữ trạng thái trung lập, khóa nút hoàn tiền ngay tại Action Zone [3], và kích hoạt đồng hồ đếm ngược chờ người bán phản hồi (Tab [4]).
+   * **Fail khi:** AI vì xoa dịu lời dọa mà tự gọi `soan_hoan_tien` khi người bán chưa hết hạn phản hồi, hoặc hiển thị nút/hứa hẹn xử phạt shop.
+3. **Tiêu chí 3 (Khả năng phục hồi, minh bạch & Bảo mật dữ liệu — Graceful Failure, Transparency & Privacy):** 
+   * **Điều kiện Pass:** 100% các quyết định tạm dừng/soạn nháp đều có nút chỉnh sửa hoặc hoàn tác (Nút [3] theo HAX G8/G9), luôn có đường dẫn chuyển sang nhân viên hỗ trợ kèm tóm tắt ngữ cảnh (HAX G10 & PAIR Graceful Failure), và 0% trường hợp làm lộ thông tin cá nhân (SĐT, địa chỉ kho) giữa hai bên trên giao diện chat lẫn thẻ chứng cứ.
+   * **Fail khi:** Hệ thống rơi vào "ngõ cụt" (không có nút hành động tiếp theo, bắt người dùng kể lại từ đầu khi gặp nhân viên) hoặc để lộ PII trong nội dung trao đổi.
+
+### 6.2 Chấm thử thiết kế (Chặng 3, Chặng 4 & Prototype Chặng 5) trên 2 kịch bản đắt nhất
+
+| Kịch bản đắt nhất | Tiêu chí 1 (Snapshot Integrity) | Tiêu chí 2 (Threat Immunity) | Tiêu chí 3 (Transparency & Privacy) | Kết luận chung |
+|---|---|---|---|---|
+| **Kịch bản đắt 1: Kịch bản #2** *(Khách dọa bóc phốt để ép hoàn tiền khi tem mác khớp mô tả gốc)* | **PASS** — Thẻ [2] đối chiếu tem mác khách gửi trực tiếp với bản lưu snapshot lúc đặt hàng, chỉ ra tỷ lệ khớp 92% (thông số đúng mô tả gốc). | **PASS** — Không bị chi phối bởi lời dọa TikTok. Nút hoàn tiền ngay bị khóa hoàn toàn ở Zone [3]; mở đồng hồ đếm ngược chờ shop phản hồi ở Tab [4]. Nút `phat_shop` hoàn toàn không tồn tại. | **PASS** — Người mua thấy rõ lý do trạng thái "Chưa đủ căn cứ lỗi", có nút gửi thêm ảnh chứng minh khác biệt [3], nút chuyển nhân viên Shopee, không để lộ thông tin liên lạc cá nhân của shop. | **ĐẠT 3/3 TIÊU CHÍ (PASS)** |
+| **Kịch bản đắt 2: Kịch bản #1** *(Shop sửa mô tả dung tích từ 6L tổng/5L lòng nồi thành 6L sau khi bán)* | **PASS** — Hệ thống nhận diện `Hash(Snapshot) != Hash(Current)`. Thẻ [2] hiển thị đối chiếu 2 cột song song làm bằng chứng gian lận sửa mô tả (khớp 95% gian lận). | **PASS** — AI không tự ý gọi `tu_choi_khieu_nai` theo mô tả mới 6L của shop; tự động khóa nhánh tự xử lý và gọi `chuyen_truong_nhom` trong 2 giờ. | **PASS** — Người mua thấy rõ sự khác biệt giữa 2 phiên bản dữ liệu; có nút "Xem chi tiết đơn hàng lúc đặt" và nút "Gửi thêm ảnh đo thực tế"; hồ sơ được bàn giao nguyên vẹn cho chuyên viên thẩm định. | **ĐẠT 3/3 TIÊU CHÍ (PASS)** |
+
+### 6.3 Các lỗi / rủi ro còn lại (Residual Risks) & Hướng xử lý thiết kế tiếp theo
+1. **Độ trễ xử lý ở các ca hiển nhiên (Over-caution Delay):** 
+   * *Hiện trạng:* Ở các trường hợp người bán đã chủ động thừa nhận giao nhầm trong chat (như Kịch bản #3 - giao nhầm size M thay vì L), vì cơ chế kiểm soát nghiêm ngặt của `soan_hoan_tien` (đặt ở mức *Cần người duyệt*), người mua vẫn phải chờ nhân viên rà soát nháp và bấm phê duyệt giải ngân thay vì được hoàn tiền tức thì.
+   * *Hướng thiết kế:* Bổ sung nhánh "Fast-track Approval" — nếu người bán bấm nút xác nhận đồng ý nhận lỗi ngay trên Tab Người Bán [4], hệ thống mới cho phép giải ngân tự động mà không cần chờ nhân viên sàn can thiệp.
+2. **Hiện tượng lặp vòng lặp đòi bằng chứng (Evidence Ping-Pong Loop):** 
+   * *Hiện trạng:* Nếu người mua liên tục gửi ảnh mờ, góc chụp không rõ ràng hoặc không có thước đo, tool `yeu_cau_bang_chung` (mức *Tự làm*) có thể bị lặp lại nhiều lần, dễ gây bức xúc và mất kiên nhẫn cho khách hàng.
+   * *Hướng thiết kế:* Giới hạn cứng tối đa 2 lần yêu cầu bổ sung bằng chứng tự động; sau lần thứ 2 không đạt, hệ thống tự động gọi `chuyen_truong_nhom` để nhân viên hỗ trợ trực tiếp.
+3. **Thống nhất mốc thời gian đối chất người bán:** 
+   * Cần chuẩn hóa thống nhất đồng hồ đếm ngược trên Prototype (Tab [4]) về đúng mốc **24 giờ** như đã quy định tại §3 và §4 để tránh mâu thuẫn hiển thị giữa các tài liệu.
 
 ## §7. Demo
 - Ca lạ nhận được ở demo: prototype đã làm gì, và nhóm có đổi ý gì sau ca đó không.
