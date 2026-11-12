@@ -5,7 +5,7 @@
 
 | Họ và Tên | Mã Học Viên | Việc đã làm |
 |---|---|---|
-| Nguyễn Đức Trọng | 2A202603367 | |
+| Nguyễn Đức Trọng | 2A202603367 |  |
 | Phạm Công Dũng | 2A202603428 | |
 | Trần Thanh Tùng | 2A202603418 | |
 
@@ -103,9 +103,34 @@ Thêm:
 - Một mức tự chủ đã đổi lời hứa nào với người dùng.
 
 ## §5. Prototype (chặng 5)
-- Link hoặc file · công cụ · phần nào mock · có lời gọi AI thật không.
-- 1–2 ảnh có đánh số; mỗi số: thể hiện gì · nguyên tắc HAX/PAIR nào · mức tự chủ nào.
-- Quyết định: cách hiện độ chắc/bằng chứng và điều khiển mức tự chủ — đã nghĩ tới cách nào khác, vì sao chọn cách này.
+## §5. Prototype (chặng 5)
+
+* **Link / File:** File mã nguồn `prototype/index.html`.
+* **Công cụ:** HTML5/JavaScript thuần.
+* **Phần mock vs. Logic thật:** Dữ liệu đơn hàng, lịch sử snapshot mô tả và cây quyết định được lập trình theo đúng ma trận mức tự chủ ở §3 & §4.
+
+### Đánh số giao diện & Ánh xạ HAX/PAIR + Autonomy
+
+![Bản vẽ cấu trúc Prototype](preview.png)
+
+* **Số [1] — Nhãn định danh AI & Phạm vi hỗ trợ (Đầu khung chat):** Hiển thị rõ *"Trợ lý AI Đối chiếu Khiếu nại Shopee (Tự động kiểm tra snapshot đơn hàng & bằng chứng)"* $\rightarrow$ **HAX G1** (Minh bạch năng lực AI & Luật AI 134/2025/QH15).
+* **Số [2] — Thẻ Đối chiếu Bằng chứng (Evidence Card):** So sánh trực quan từng trường dữ liệu (`Nội dung lúc đặt` vs `Nội dung hiện tại` vs `Ảnh khách gửi`) kèm nhãn mức độ tin cậy (*"Khớp 95% gian lận sửa mô tả"* hoặc *"Tem khớp 92% - Chưa đủ căn cứ lỗi"*) $\rightarrow$ **HAX G2** & **PAIR Explainability + Trust**.
+* **Số [3] — Khu vực Hành động theo Mức tự chủ (Action Zone):**
+  * Với ca đủ căn cứ (Kịch bản #1): AI **Tự làm** việc soạn phiếu, hiển thị nút **[Xác nhận gửi yêu cầu hoàn tiền]** kèm nút **[Hoàn tác / Sửa lý do]** (**HAX G8 & G9**).
+  * Với ca chưa đủ căn cứ (Kịch bản #2): Không hiện nút hoàn tiền hay từ chối; chỉ hiện nút **[Gửi thêm ảnh điểm khác biệt]** (`yeu_cau_bang_chung` — Tự làm) và **[Chuyển nhân viên Shopee]** (`chuyen_truong_nhom` — Tự làm) (**HAX G10 & PAIR Graceful Failure**).
+  * Với ca đòi khóa shop (`phat_shop` — **CẤM**): Hoàn toàn không hiển thị nút xử phạt; hiển thị thẻ thông báo chuyển bộ phận chuyên trách.
+* **Số [4] — Tab xem Phía Người Bán / Nhân viên duyệt:** Hiển thị hồ sơ khiếu nại shop nhận được kèm **Đồng hồ đếm ngược 48h phản hồi**, chứng cứ đối chiếu snapshot từ AI, và 2 nút duyệt: **[Đồng ý hoàn tiền]** hoặc **[Khiếu nại ngược / Gửi nhân viên phân xử]** (thể hiện mức **Cần người duyệt** của `soan_hoan_tien` và `tu_choi_khieu_nai`).
+
+### Lập luận chọn cách thể hiện giao diện
+
+* **Các phương án đã cân nhắc:**
+  * (A) Giao diện khung chat dạng văn bản thuần túy (Chatbot dạng text truyền thống).
+  * (B) Giao diện 2 góc nhìn song song (Người mua & Người bán/Nhân viên) kết hợp Thẻ đối chiếu chứng cứ có cấu trúc.
+* **Phương án được chọn:** Phương án **(B)**.
+* **Vì sao chọn (B):** Trong bài toán trung lập hai chiều của sàn TMĐT, giao diện song song giúp thể hiện rõ cơ chế bảo vệ người bán chân chính (đồng hồ đếm ngược 48h, quyền phản hồi chứng cứ, cơ chế khóa quyền tự chi tiền của AI).
+* **Loại (A) vì sao:** Khung chat văn bản thuần túy khiến người dùng rơi vào trạng thái "hộp đen", không thể tự kiểm tra xem AI dựa vào dữ liệu snapshot cũ hay mô tả mới sửa.
+
+---
 
 ## §6. Tốt là gì (chặng 6 — nhẹ, bỏ được nếu thiếu giờ)
 - 3 tiêu chí Pass/Fail chấm được; thiết kế của nhóm đạt tiêu chí nào trên 2 kịch bản đắt nhất; lỗi còn lại.
