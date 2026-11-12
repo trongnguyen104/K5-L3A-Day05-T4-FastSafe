@@ -92,15 +92,47 @@
   - **Thiết kế cứu lỗi:** Ràng buộc ở tầng kiến trúc hệ thống (System Architecture): Khóa cứng nguồn dữ liệu đầu vào của AI khi xử lý khiếu nại bắt buộc phải đọc từ `Order_Snapshot_DB` (bản lưu bất biến tại giây khách bấm thanh toán), đồng thời kích hoạt cờ cảnh báo tự động gọi `chuyen_truong_nhom` bất cứ khi nào `Hash(Snapshot) != Hash(Current)`.
 
 ## §4. Mức tự chủ (chặng 4)
-Với mỗi tool:
-- Mức của nhóm (tự làm / cần người duyệt / cấm). Nếu cần người duyệt: ai duyệt · người duyệt thấy gì · quá hạn thì sao.
-- Lý do theo cost-of-error: sai thì ai chịu gì · đảo lại được không · chờ người thì mất gì.
-- Phương án đã cân nhắc và vì sao loại.
-Thêm:
-- Tool khó xếp nhất: mỗi người từng chọn gì, cái giá của mỗi phía (trỏ về kịch bản ở §2), nhóm chốt thế nào.
-- Thử mức đã đặt trên 2 kịch bản đắt nhất + 1 kịch bản bình thường: cái sai có bị chặn không? còn việc nào làm khi lẽ ra phải hỏi? người dùng bình thường có phải chờ vô ích không?
-- Luật thêm hoặc tool tách bước (nếu có), và vì sao.
-- Một mức tự chủ đã đổi lời hứa nào với người dùng.
+
+### 4.1 Bảng mức tự chủ cho từng tool (theo cost-of-error)
+
+| Tool | Mức của nhóm | Ai duyệt · Thấy gì · Quá hạn thì sao | Lý do theo cost-of-error (sai ai chịu gì · đảo được không · chờ mất gì) | Phương án đã cân nhắc & vì sao loại |
+|---|---|---|---|---|
+| `yeu_cau_bang_chung` | **Tự làm** | Không cần duyệt | Sai chỉ làm phiền người mua hoặc người bán gửi thêm ảnh/video (tin đã tới nhưng sửa được ở lượt chat sau). Nếu bắt chờ nhân viên duyệt mới được hỏi thêm bằng chứng, người mua sẽ bức xúc vì không biết thiếu gì (như Kịch bản #5) và người bán bị trễ thời hạn 24 giờ đối chất (Kịch bản #2). | Loại **Cần người duyệt** (tạo độ trễ vô ích cho thao tác rủi ro thấp). Loại **Cấm** (với các tin cụt như Kịch bản #4 *"hàng sai rồi, xử lý đi"*, AI bắt buộc phải tự hỏi/xin bằng chứng). |
+| `chuyen_truong_nhom` | **Tự làm** | Không cần duyệt | Chuyển thừa chỉ tốn thêm vài phút đọc hồ sơ của trưởng nhóm (đảo được hoàn toàn). Ngược lại, nếu bắt chờ duyệt mới được chuyển ở các ca nhạy cảm (shop sửa mô tả ở Kịch bản #1, nghi hàng giả ở Kịch bản #6), ca rủi ro bị kẹt lại hoặc AI tự xử sai gây mất tiền. | Loại **Cần người duyệt** (chuyển người là đường thoát an toàn khi AI nghi ngờ, không nên tự đặt rào cản). Loại **Cấm** (trái nguyên tắc an toàn: luôn phải có đường sang người thật). |
+| `soan_hoan_tien` | **Cần người duyệt** | **Ai duyệt:** Trưởng nhóm / nhân viên xử lý khiếu nại.<br>**Thấy gì:** Bản đối chiếu `Order_Snapshot_DB` vs mô tả hiện tại, ảnh bằng chứng 2 bên, phản hồi của shop trong hạn 24 giờ, cờ cảnh báo từ khóa đe dọa (nếu có).<br>**Quá hạn:** Giữ nguyên tiền tạm khóa ở sàn, đẩy ưu tiên hàng chờ và báo rõ thời gian dự kiến; **tuyệt đối không tự động giải ngân**. | Hoàn sai (như Kịch bản #2 khi khách dọa bóc phốt dù tem khớp mô tả) → tiền đã về ví người mua rất khó đòi lại, **người bán mất trắng cả hàng lẫn tiền**. Chờ trưởng nhóm duyệt tốn thêm thời gian xử lý (tối đa vài giờ – 1 ngày) nhưng một bước kiểm tra ngắn chặn được thiệt hại tài chính khó đảo ngược. | Loại **Tự làm** (dễ bị thao túng bởi lời dọa bóc phốt ở Kịch bản #2 và xử ép người bán trước khi họ kịp phản hồi). Loại **Cấm** (ở ca rõ ràng như Kịch bản #3 khi shop đã nhận gửi nhầm size, việc AI soạn sẵn đề xuất hoàn tiền giúp nhân viên duyệt nhanh hơn). |
+| `tu_choi_khieu_nai` | **Cần người duyệt** | **Ai duyệt:** Trưởng nhóm / nhân viên xử lý khiếu nại.<br>**Thấy gì:** Toàn bộ ảnh/video khách gửi, bản lưu `Order_Snapshot_DB` lúc đặt, phản hồi của shop, lý do AI đề xuất từ chối.<br>**Quá hạn:** Không tự động đóng khiếu nại hay nhả tiền cho shop; giữ trạng thái chờ rà soát để tránh xử thua oan người mua. | Đóng nhầm (như Kịch bản #1 nếu AI đọc nhầm mô tả đã bị shop sửa, hoặc Kịch bản #8 khi AI bịa luật đã bấm nhận hàng) → tiền chuyển về người bán rất khó thu hồi, **người mua mất tiền và ôm hàng sai**. Chờ duyệt làm shop nhận tiền chậm hơn một chút nhưng bảo vệ quyền lợi người mua và tránh xung đột leo thang. | Loại **Tự làm** (sai là người mua mất tiền, khó đảo, và như phân tích ở §3 Kịch bản #2, đóng ngay rất dễ kích động khách làm ầm ĩ trước khi có đối chứng đầy đủ). Loại **Cấm** (khi shop thật sự đúng và đã qua kiểm tra đủ bằng chứng, sàn vẫn cần quyền đóng khiếu nại hợp lệ). |
+| `phat_shop` | **Cấm** | Không áp dụng (không có nút thực hiện trong luồng trợ lý) | Trừ uy tín hoặc khóa shop nhầm ảnh hưởng toàn bộ doanh thu và các đơn hàng khác của cả cửa hàng, hậu quả nặng nề và khó khắc phục. Xử phạt shop hoặc nghi hàng giả (Kịch bản #6) nằm ngoài thẩm quyền của luồng chat khiếu nại đơn lẻ, một bước bấm xác nhận nhanh cũng không đủ căn cứ. | Loại **Tự làm** (thiệt hại quá lớn, ngoài thẩm quyền). Loại **Cần người duyệt** (luồng khiếu nại 1 đơn không đủ dữ liệu kết luận khóa cả shop; khi gặp ca đòi phạt/nghi hàng giả, AI chỉ gọi `chuyen_truong_nhom` đẩy sang bộ phận kiểm duyệt chuyên trách). |
+
+### 4.2 Tool khó xếp nhất
+- **Tool khó xếp nhất:** `soan_hoan_tien`
+- **Quan điểm ban đầu của các thành viên:**
+  - Thành viên 1 (`§1–§3`) chọn **Cần người duyệt** vì lo ngại kịch bản khách dọa bóc phốt (Kịch bản #2) ép AI hoàn tiền oan cho người bán.
+  - Thành viên 2 (`§5`) từng cân nhắc **Tự làm** cho các ca rõ ràng như Kịch bản #3 (áo size L nhận nhầm size M, shop đã nhắn tin nhận lỗi) để người mua không phải chờ lâu.
+  - Thành viên 3 (`§4, §6`) chọn **Cần người duyệt** nhưng **tách bước soạn nháp**, vì chỉ cần một ca AI đọc nhầm tin nhắn hoặc người bán chưa kịp phản hồi, tiền rời khỏi sàn là rất khó thu hồi.
+- **Cái giá của mỗi phía (trỏ về §2):**
+  - Nếu đặt **Tự làm**: dính rủi ro ở **Kịch bản #2** (*dọa bóc phốt khi shop đúng*) và **Kịch bản #5** (*chỉ chụp 2 hộp sữa không có video khui hàng*), người bán mất tiền oan.
+  - Nếu đặt **Cần người duyệt**: ở **Kịch bản #3** (*shop đã nhận gửi nhầm size*), người mua phải chờ nhân viên bấm xác nhận thay vì nhận tiền ngay lập tức.
+- **Cách nhóm chốt:** Đặt **`Cần người duyệt`** cho mọi thao tác giải ngân hoàn tiền, đồng thời **tách bước soạn sẵn hồ sơ hoàn tiền** cho AI tự làm nháp nội bộ để nhân viên chỉ mất vài giây đối chiếu và bấm duyệt.
+
+### 4.3 Luật thêm & tách bước
+- **Tách `soan_hoan_tien` thành 2 bước:** `soan_hoan_tien_nhap` (AI tự tổng hợp bằng chứng + số tiền đề xuất thành nháp nội bộ) và `duyet_hoan_tien` (trưởng nhóm bấm xác nhận chuyển tiền). Giúp giữ an toàn tài chính mà vẫn giảm thời gian chờ cho ca bình thường.
+- **Luật cứng (Hard-rule) chống lỗi ngữ cảnh & nguồn sự thật (khớp §3):**
+  1. Bắt buộc truy vấn từ `Order_Snapshot_DB`; hễ `Hash(Snapshot) != Hash(Current)` thì khóa mọi đề xuất tự xử và gọi ngay `chuyen_truong_nhom` (chặn Kịch bản #1).
+  2. Tách từ khóa đe dọa (*"bóc phốt"*, *"TikTok"*, *"kiện"*) khỏi trọng số tính điểm hoàn tiền và không cho phép hoàn tất khiếu nại trước khi hết **24 giờ** chờ người bán phản hồi (chặn Kịch bản #2).
+
+### 4.4 Thử mức đã đặt trên 2 kịch bản đắt nhất + 1 kịch bản bình thường
+1. **Kịch bản đắt nhất 1 — Kịch bản #2 (Dọa bóc phốt khi người bán đúng):**
+   - *Cái sai có bị chặn không?* **Có.** `soan_hoan_tien` ở mức **Cần người duyệt** nên AI không thể tự hoàn tiền theo lời dọa; `yeu_cau_bang_chung` ở mức **Tự làm** giúp AI mở ngay đồng hồ 24 giờ cho người bán đối chứng; `tu_choi_khieu_nai` cũng ở mức **Cần người duyệt** nên AI không đóng vội khi chưa đủ đối chứng.
+   - *Còn việc nào AI vẫn làm khi lẽ ra phải hỏi?* Không.
+2. **Kịch bản đắt nhất 2 — Kịch bản #1 (Người bán sửa mô tả sau khi bán):**
+   - *Cái sai có bị chặn không?* **Có.** Nhờ luật đối chiếu `Order_Snapshot_DB` và `tu_choi_khieu_nai` ở mức **Cần người duyệt**, AI không bị lừa bởi mô tả 6L mới sửa; `chuyen_truong_nhom` ở mức **Tự làm** lập tức đẩy hồ sơ kèm bản diff cho trưởng nhóm thẩm định trong 2 giờ.
+   - *Còn việc nào AI vẫn làm khi lẽ ra phải hỏi?* Không.
+3. **Kịch bản bình thường — Kịch bản #3 (Áo size L nhận nhầm size M, shop đã nhận lỗi):**
+   - *Người dùng bình thường có phải chờ vô ích không?* **Không bị tắc ở bước hướng dẫn**, vì `yeu_cau_bang_chung` ở mức **Tự làm** giúp AI báo ngay thời hạn trả hàng hợp lệ và yêu cầu đúng ảnh tem size M + ảnh chat shop nhận lỗi để khách bấm tạo yêu cầu. Ở bước hoàn tiền cuối cùng, nhờ AI đã soạn sẵn nháp hồ sơ, trưởng nhóm chỉ cần rà nhanh và bấm duyệt thay vì xử lý thủ công từ đầu.
+
+### 4.5 Mức tự chủ đã đổi lời hứa với người dùng thế nào
+- **Nếu để AI tự làm hoàn tiền / phạt shop:** Lời hứa ngầm với khách là *"Nhắn AI đòi là được hoàn tiền / khóa shop ngay"* → biến trợ lý thành nơi gây áp lực bóc phốt và xử ép người bán.
+- **Theo mức tự chủ nhóm chọn:** Lời hứa đổi thành *"AI giúp bạn đối chiếu đúng mô tả lúc đặt hàng, hướng dẫn đủ bằng chứng và chuyển hồ sơ minh bạch; mọi quyết định tiền bạc luôn có thời hạn đối chất công bằng và nhân viên kiểm duyệt cho cả hai phía."*
 
 ## §5. Prototype (chặng 5)
 - Link hoặc file · công cụ · phần nào mock · có lời gọi AI thật không.
