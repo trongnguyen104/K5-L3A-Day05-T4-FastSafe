@@ -135,7 +135,6 @@
 - **Theo mức tự chủ nhóm chọn:** Lời hứa đổi thành *"AI giúp bạn đối chiếu đúng mô tả lúc đặt hàng, hướng dẫn đủ bằng chứng và chuyển hồ sơ minh bạch; mọi quyết định tiền bạc luôn có thời hạn đối chất công bằng và nhân viên kiểm duyệt cho cả hai phía."*
 
 ## §5. Prototype (chặng 5)
-## §5. Prototype (chặng 5)
 
 * **Link / File:** File mã nguồn `prototype/index.html`.
 * **Công cụ:** HTML5/JavaScript thuần.
