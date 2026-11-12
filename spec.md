@@ -142,7 +142,7 @@
 
 ### Đánh số giao diện & Ánh xạ HAX/PAIR + Autonomy
 
-![Bản vẽ cấu trúc Prototype](preview.png)
+![prototype](preview.png)
 
 * **Số [1] — Nhãn định danh AI & Phạm vi hỗ trợ (Đầu khung chat):** Hiển thị rõ *"Trợ lý AI Đối chiếu Khiếu nại Shopee (Tự động kiểm tra snapshot đơn hàng & bằng chứng)"* $\rightarrow$ **HAX G1** (Minh bạch năng lực AI & Luật AI 134/2025/QH15).
 * **Số [2] — Thẻ Đối chiếu Bằng chứng (Evidence Card):** So sánh trực quan từng trường dữ liệu (`Nội dung lúc đặt` vs `Nội dung hiện tại` vs `Ảnh khách gửi`) kèm nhãn mức độ tin cậy (*"Khớp 95% gian lận sửa mô tả"* hoặc *"Tem khớp 92% - Chưa đủ căn cứ lỗi"*) $\rightarrow$ **HAX G2** & **PAIR Explainability + Trust**.
